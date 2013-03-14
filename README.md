@@ -28,8 +28,8 @@ $client = new \Bluelyte\IMDB\Client\Client();
 // Numb3rs - http://www.imdb.com/title/tt0433309/
 $id = 'tt0433309';
 
-$season = $client->getLatestSeason($id); // '6'
-$episodes = $client->getSeasonEpisodes($id, $season);
+$showInfo = $client->getShowInfo($id);
+$episodes = $client->getSeasonEpisodes($id, $showInfo['lastSeason']);
 var_dump($episodes);
 
 /*
