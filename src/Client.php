@@ -11,17 +11,22 @@ class Client extends \Goutte\Client
     protected $baseUrl = 'http://www.imdb.com';
 
     /**
-     * Returns the latest season of a specified TV show.
+     * Returns information for a specified TV show.
      *
      * @param string $id ID as contained in the URL for the TV show of the 
      *        form http://www.imdb.com/title/ID/
-     * @return string Season number
+     * @return array Associative array of metadata about the TV show
      */
-    public function getLatestSeason($id)
+    public function getShowInfo($id)
     {
         $crawler = $this->request('GET', $this->baseUrl . '/title/' . $id . '/');
-        $a = $crawler->filterXPath('//div[@id="titleTVSeries"]//h4[text()="Season:"]/../span[1]/a[1]');
-        return $a->text();
+        $title = $crawler->filterXPath('//h1/span[@itemprop="name"]')->text();
+        $latestSeason = $crawler->filterXPath('//div[@id="titleTVSeries"]//h4[text()="Season:"]/../span[1]/a[1]')->text();
+        $showInfo = array(
+            'title' => $title,
+            'latestSeason' => $latestSeason,
+        );
+        return $showInfo;
     }
 
     /**
