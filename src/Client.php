@@ -48,13 +48,13 @@ class Client extends \Goutte\Client
             $div = new Crawler($div);
             $number = $div->filterXPath('//meta[@itemprop="episodeNumber"]')->attr('content');
             $title = $div->filterXPath('//strong/a[@itemprop="name"]')->text();
-            $airdate = date('Y-m-d', strtotime(trim($div->filterXPath('//div[@class="airdate"]')->text())));
+            $airdate = $div->filterXPath('//div[@class="airdate"]')->text();
             $description = $div->filterXPath('//div[@class="item_description"]')->text();
-            $episodes[$number] = array(
+            $episodes[$number] = array_map('trim', array(
                 'title' => $title,
                 'airdate' => $airdate,
                 'description' => $description,
-            );
+            ));
         }
         return $episodes;
     }
