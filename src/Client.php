@@ -25,7 +25,7 @@ class Client extends \Goutte\Client
         $showInfo['title'] = $crawler->filterXPath('//h1/span[@itemprop="name"]')->text();
 
         $nextEpisode = $crawler->filterXPath('//div[@class="next-episode"]/div')->text();
-        if (preg_match('/S(?P<season>[0-9]+), Ep(?P<episode>[0-9]+)/', $match)) {
+        if (preg_match('/S(?P<season>[0-9]+), Ep(?P<episode>[0-9]+)/', $nextEpisode, $match)) {
             $showInfo['latestSeason'] = $match['season'];
             $showInfo['latestEpisode'] = $match['episode'];
         } else {
