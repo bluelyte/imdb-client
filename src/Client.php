@@ -19,13 +19,19 @@ class Client extends \Goutte\Client
      */
     public function getShowInfo($id)
     {
+        $showInfo = array();
+
         $crawler = $this->request('GET', $this->baseUrl . '/title/' . $id . '/');
-        $title = $crawler->filterXPath('//h1/span[@itemprop="name"]')->text();
-        $latestSeason = $crawler->filterXPath('//div[@id="titleTVSeries"]//h4[text()="Season:"]/../span[1]/a[1]')->text();
-        $showInfo = array(
-            'title' => $title,
-            'latestSeason' => $latestSeason,
-        );
+        $showInfo['title'] = $crawler->filterXPath('//h1/span[@itemprop="name"]')->text();
+
+        $nextEpisode = $crawler->filterXPath('//div[@class="next-episode"]/div')->text();
+        if (preg_match('/S(?P<season>[0-9]+), Ep(?P<episode>[0-9]+)/', $match)) {
+            $showInfo['latestSeason'] = $match['season'];
+            $showInfo['latestEpisode'] = $match['episode'];
+        } else {
+            $showInfo['latestSeason'] = $crawler->filterXPath('//div[@id="titleTVSeries"]//h4[text()="Season:"]/../span[1]/a[1]')->text();
+        }
+
         return $showInfo;
     }
 
