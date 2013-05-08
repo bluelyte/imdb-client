@@ -13,7 +13,7 @@ class Client extends \Goutte\Client
     /**
      * Returns information for a specified TV show.
      *
-     * @param string $id ID as contained in the URL for the TV show of the 
+     * @param string $id ID as contained in the URL for the TV show of the
      *        form http://www.imdb.com/title/ID/
      * @return array Associative array of metadata about the TV show
      */
@@ -24,12 +24,27 @@ class Client extends \Goutte\Client
         $crawler = $this->request('GET', $this->baseUrl . '/title/' . $id . '/');
         $showInfo['title'] = $crawler->filterXPath('//h1/span[@itemprop="name"]')->text();
 
-        $nextEpisode = $crawler->filterXPath('//div[@class="next-episode"]/div')->text();
-        if (preg_match('/S(?P<season>[0-9]+), Ep(?P<episode>[0-9]+)/', $nextEpisode, $match)) {
+        $nextEpisode = $crawler->filterXPath('//div[@class="next-episode"]/div');
+        if (count($nextEpisode) && preg_match('/S(?P<season>[0-9]+), Ep(?P<episode>[0-9]+)/', $nextEpisode->text(), $match)) {
             $showInfo['latestSeason'] = $match['season'];
             $showInfo['latestEpisode'] = $match['episode'];
         } else {
             $showInfo['latestSeason'] = $crawler->filterXPath('//div[@id="titleTVSeries"]//h4[text()="Season:"]/../span[1]/a[1]')->text();
+            $today = time(0, 0, 0);
+            do {
+                $seasonEpisodes = $this->getSeasonEpisodes($id, $showInfo['latestSeason']);
+                $currentEpisodes = array_filter($seasonEpisodes, function($episode) use ($today) {
+                    return strtotime($episode['airdate']) < $today;
+                });
+                if ($currentEpisodes) {
+                    $showInfo['latestEpisode'] = max(array_keys($currentEpisodes));
+                    break;
+                } elseif ($showInfo['latestSeason'] > 1) {
+                    $showInfo['latestSeason']--;
+                } else {
+                    $showInfo['latestEpisode'] = 1;
+                }
+            } while ($showInfo['latestSeason'] >= 1);
         }
 
         return $showInfo;
@@ -38,11 +53,11 @@ class Client extends \Goutte\Client
     /**
      * Returns a list of episodes for a specified season of a TV show.
      *
-     * @param string $id ID as contained in the URL for the TV show of the 
+     * @param string $id ID as contained in the URL for the TV show of the
      *        form http://www.imdb.com/title/ID/
      * @param string $season Season for which to return episodes
-     * @return array Associative array indexed by episode number of 
-     *         associative arrays each containing data for an individual 
+     * @return array Associative array indexed by episode number of
+     *         associative arrays each containing data for an individual
      *         episode within the season
      */
     public function getSeasonEpisodes($id, $season)
